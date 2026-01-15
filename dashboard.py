@@ -5,25 +5,24 @@ import os
 st.set_page_config(page_title="Live Stock Dashboard", layout="wide")
 st.title("📈 Real-Time Multi-Stock Analysis Dashboard")
 
-# Refresh every 60 seconds
-st.experimental_set_query_params(refresh="true")
-st.autorefresh(interval=60_000, key="datarefresh")
-
 CSV_FILE = "data/stock_live_data.csv"
 
 if not os.path.exists(CSV_FILE):
-    st.warning("Waiting for live data...")
+    st.warning("Stock data not found. Showing sample or waiting for data.")
     st.stop()
 
+# Load data
 df = pd.read_csv(CSV_FILE)
 df["timestamp"] = pd.to_datetime(df["timestamp"])
 df = df.sort_values("timestamp")
 
+# Stock selector
 stocks = sorted(df["symbol"].dropna().unique())
 selected_stock = st.selectbox("Select Stock", stocks)
 
 stock_df = df[df["symbol"] == selected_stock]
 
+# Indicators
 stock_df["MA_3"] = stock_df["close"].rolling(3).mean()
 stock_df["MA_5"] = stock_df["close"].rolling(5).mean()
 
@@ -39,3 +38,6 @@ with col2:
 
 st.subheader("🔥 Latest Records")
 st.dataframe(stock_df.tail(10), use_container_width=True)
+
+st.caption("Data refreshes when the page reloads or new data is pushed.")
+
